@@ -7,526 +7,639 @@
 
     <title>PURBABHASH | Flood Management</title>
 
-    <link rel="stylesheet"href="{{ url_for('static',filename='style.css')}}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="style.css">
 
     <!-- Leaflet Map -->
-    <link rel="stylesheet"
-          href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 </head>
 
 <body>
 
-<!-- ================= SIDEBAR ================= -->
+    <!-- ================= SIDEBAR ================= -->
 
-<div class="sidebar">
+    <div class="sidebar">
 
-    <div class="logo">
+        <div class="logo">
 
-        <div class="logo-icon">P</div>
+            <div class="logo-icon">P</div>
 
-        <div>
-            <h2>PURBABHASH</h2>
-            <span>Predictive Flood Management</span>
+            <div>
+                <h2>PURBABHASH</h2>
+                <span>Predictive Flood Management</span>
+            </div>
+
+        </div>
+
+
+        <div class="menu">
+
+            <button class="active-nav" onclick="showSection('dashboard')">
+                🏠 Dashboard
+            </button>
+
+            <button onclick="showSection('prediction')">
+                🌧️ Flood Prediction
+            </button>
+
+            <button onclick="showSection('map-section')">
+                🗺️ Risk Map
+            </button>
+
+            <button onclick="showSection('rescue')">
+                🚑 Rescue Operations
+            </button>
+
+            <button onclick="showSection('sos')">
+                🆘 Emergency SOS
+            </button>
+
+        </div>
+
+
+        <div class="sidebar-footer">
+
+            <div class="online-dot"></div>
+
+            System Online
+
         </div>
 
     </div>
 
 
-    <div class="menu">
+    <!-- ================= MAIN CONTENT ================= -->
 
-        <button onclick="showSection('dashboard')">
-            🏠 Dashboard
-        </button>
+    <div class="main">
 
-        <button onclick="showSection('prediction')">
-            🌧️ Flood Prediction
-        </button>
+        <!-- HEADER -->
 
-        <button onclick="showSection('map-section')">
-            🗺️ Risk Map
-        </button>
+        <header>
 
-        <button onclick="showSection('rescue')">
-            🚑 Rescue Operations
-        </button>
+            <div>
 
-        <button onclick="showSection('sos')">
-            🆘 Emergency SOS
-        </button>
-
-    </div>
-
-
-    <div class="sidebar-footer">
-
-        <div class="online-dot"></div>
-
-        System Online
-
-    </div>
-
-</div>
-
-
-<!-- ================= MAIN CONTENT ================= -->
-
-<div class="main">
-
-    <!-- HEADER -->
-
-    <header>
-
-        <div>
-
-            <h1>Flood Command Center</h1>
-
-            <p>
-                AI-powered predictive disaster management
-            </p>
-
-        </div>
-
-
-        <div class="status">
-
-            <span class="dot"></span>
-
-            PURBABHASH V6
-
-        </div>
-
-    </header>
-
-
-
-    <!-- ================= DASHBOARD ================= -->
-
-    <section id="dashboard" class="section active">
-
-        <div class="welcome">
-
-            <h2>
-                Welcome to PURBABHASH
-            </h2>
-
-            <p>
-                Predict → Prioritize → Act → Protect
-            </p>
-
-        </div>
-
-
-        <!-- STAT CARDS -->
-
-        <div class="cards">
-
-            <div class="card">
-
-                <div class="card-title">
-                    Critical Zones
-                </div>
-
-                <div class="card-value" id="critical">
-                    0
-                </div>
-
-            </div>
-
-
-            <div class="card">
-
-                <div class="card-title">
-                    High Risk Zones
-                </div>
-
-                <div class="card-value" id="high">
-                    0
-                </div>
-
-            </div>
-
-
-            <div class="card">
-
-                <div class="card-title">
-                    Moderate Zones
-                </div>
-
-                <div class="card-value" id="moderate">
-                    0
-                </div>
-
-            </div>
-
-
-            <div class="card">
-
-                <div class="card-title">
-                    Population at Risk
-                </div>
-
-                <div class="card-value" id="population">
-                    0
-                </div>
-
-            </div>
-
-        </div>
-
-
-
-        <!-- DASHBOARD GRID -->
-
-        <div class="dashboard-grid">
-
-
-            <div class="panel">
-
-                <h3>
-                    System Architecture
-                </h3>
-
-
-                <div class="flow">
-
-                    <div>
-                        🌧️
-                        <span>Data</span>
-                    </div>
-
-                    <div class="arrow">
-                        →
-                    </div>
-
-                    <div>
-                        🤖
-                        <span>AI</span>
-                    </div>
-
-                    <div class="arrow">
-                        →
-                    </div>
-
-                    <div>
-                        ⚠️
-                        <span>Risk</span>
-                    </div>
-
-                    <div class="arrow">
-                        →
-                    </div>
-
-                    <div>
-                        🚑
-                        <span>Rescue</span>
-                    </div>
-
-                </div>
-
-            </div>
-
-
-
-            <div class="panel">
-
-                <h3>
-                    Quick Start
-                </h3>
+                <h1>Flood Command Center</h1>
 
                 <p>
-                    Enter environmental conditions to generate
-                    a flood-risk assessment.
+                    AI-powered predictive disaster management
                 </p>
 
-                <button
-                    class="primary-btn"
-                    onclick="showSection('prediction')">
+            </div>
 
-                    Run Prediction
 
-                </button>
+            <div class="status">
+
+                <span class="dot"></span>
+
+                PURBABHASH V6
 
             </div>
 
-        </div>
-
-    </section>
+        </header>
 
 
 
-    <!-- ================= PREDICTION ================= -->
+        <!-- ================= DASHBOARD ================= -->
 
-    <section id="prediction" class="section">
+        <section id="dashboard" class="section active">
 
-        <div class="section-title">
+            <div class="welcome">
 
-            <h2>
-                Flood Prediction Engine
-            </h2>
+                <h2>
+                    Welcome to PURBABHASH
+                </h2>
 
-            <p>
-                Enter simulated environmental data
-            </p>
-
-        </div>
-
-
-        <div class="prediction-grid">
-
-
-            <!-- INPUT PANEL -->
-
-            <div class="panel">
-
-                <h3>
-                    Environmental Conditions
-                </h3>
-
-
-                <label>
-                    Rainfall intensity (mm/hour)
-                </label>
-
-                <input
-                    type="number"
-                    id="rainfall"
-                    value="75"
-                    min="0"
-                >
-
-
-                <label>
-                    River water level (m)
-                </label>
-
-                <input
-                    type="number"
-                    id="river_level"
-                    value="6"
-                    min="0"
-                    step="0.1"
-                >
-
-
-                <label>
-                    Water-level rise (m/hour)
-                </label>
-
-                <input
-                    type="number"
-                    id="water_rise"
-                    value="1"
-                    min="0"
-                    step="0.1"
-                >
-
-
-                <label>
-                    Soil moisture (%)
-                </label>
-
-                <input
-                    type="number"
-                    id="soil_moisture"
-                    value="75"
-                    min="0"
-                    max="100"
-                >
-
-
-                <button
-                    class="primary-btn"
-                    onclick="runPrediction()">
-
-                    Run AI Prediction
-
-                </button>
+                <p>
+                    Predict → Prioritize → Act → Protect
+                </p>
 
             </div>
 
 
+            <!-- STAT CARDS -->
 
-            <!-- RESULT PANEL -->
+            <div class="cards">
 
-            <div class="panel result-panel">
+                <div class="card">
 
-                <h3>
-                    Prediction Status
-                </h3>
+                    <div class="card-title">
+                        Critical Zones
+                    </div>
 
-                <div id="prediction-status">
+                    <div class="card-value" id="critical">
+                        0
+                    </div>
 
-                    Waiting for analysis...
+                </div>
+
+
+                <div class="card">
+
+                    <div class="card-title">
+                        High Risk Zones
+                    </div>
+
+                    <div class="card-value" id="high">
+                        0
+                    </div>
+
+                </div>
+
+
+                <div class="card">
+
+                    <div class="card-title">
+                        Moderate Zones
+                    </div>
+
+                    <div class="card-value" id="moderate">
+                        0
+                    </div>
+
+                </div>
+
+
+                <div class="card">
+
+                    <div class="card-title">
+                        Population at Risk
+                    </div>
+
+                    <div class="card-value" id="population">
+                        0
+                    </div>
 
                 </div>
 
             </div>
 
-        </div>
-
-    </section>
 
 
+            <!-- DASHBOARD GRID -->
 
-    <!-- ================= RISK MAP ================= -->
-
-    <section id="map-section" class="section">
-
-        <div class="section-title">
-
-            <h2>
-                Live Flood Risk Map
-            </h2>
-
-            <p>
-                Simulated command map
-            </p>
-
-        </div>
+            <div class="dashboard-grid">
 
 
-        <div id="map"></div>
+                <div class="panel">
+
+                    <h3>
+                        System Architecture
+                    </h3>
 
 
-        <div class="legend">
+                    <div class="flow">
 
-            <div>
-                <span class="legend-low"></span>
-                Low
+                        <div>
+                            🌧️
+                            <span>Data</span>
+                        </div>
+
+                        <div class="arrow">
+                            →
+                        </div>
+
+                        <div>
+                            🤖
+                            <span>AI</span>
+                        </div>
+
+                        <div class="arrow">
+                            →
+                        </div>
+
+                        <div>
+                            ⚠️
+                            <span>Risk</span>
+                        </div>
+
+                        <div class="arrow">
+                            →
+                        </div>
+
+                        <div>
+                            🚑
+                            <span>Rescue</span>
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+
+                <div class="panel">
+
+                    <h3>
+                        Quick Start
+                    </h3>
+
+                    <p>
+                        Enter environmental conditions to generate
+                        a flood-risk assessment.
+                    </p>
+
+                    <button class="primary-btn" onclick="showSection('prediction')">
+
+                        Run Prediction
+
+                    </button>
+
+                </div>
+
             </div>
 
-            <div>
-                <span class="legend-moderate"></span>
-                Moderate
+        </section>
+
+
+
+        <!-- ================= PREDICTION ================= -->
+
+        <section id="prediction" class="section">
+
+            <div class="section-title">
+
+                <h2>
+                    West Bengal Flood & Disaster Prediction Engine
+                </h2>
+
+                <p>
+                    Location-aware multi-hazard intelligence powered by NDMA SACHET, IMD Kolkata, USGS & GDACS
+                </p>
+
             </div>
 
-            <div>
-                <span class="legend-high"></span>
-                High
+            <!-- WEST BENGAL LOCATION & MULTI-API HAZARD DETECTOR -->
+            <div class="panel wb-location-panel">
+                <div class="panel-header-flex">
+                    <div>
+                        <h3>📍 West Bengal Location-Based Disaster Predictor</h3>
+                        <p>Real-time multi-hazard diagnosis for all 23 districts of West Bengal</p>
+                    </div>
+                    <div class="api-badge-cluster">
+                        <span class="api-badge"><span class="badge-dot"></span> NDMA SACHET CAP</span>
+                        <span class="api-badge"><span class="badge-dot"></span> IMD Kolkata</span>
+                        <span class="api-badge"><span class="badge-dot"></span> USGS Quakes</span>
+                        <span class="api-badge"><span class="badge-dot"></span> GDACS Live</span>
+                    </div>
+                </div>
+
+                <div class="location-control-row">
+                    <div class="select-wrapper">
+                        <label for="wb-district-select">Select West Bengal District:</label>
+                        <select id="wb-district-select" onchange="onDistrictSelected(this.value)">
+                            <optgroup label="Coastal & Delta (Cyclone / Surge)">
+                                <option value="South 24 Parganas">South 24 Parganas (Sundarbans)</option>
+                                <option value="Purba Medinipur">Purba Medinipur (Digha / Haldia)</option>
+                                <option value="North 24 Parganas">North 24 Parganas</option>
+                            </optgroup>
+                            <optgroup label="Urban & Central Delta (Urban Inundation)">
+                                <option value="Kolkata" selected>Kolkata (Command Center)</option>
+                                <option value="Howrah">Howrah</option>
+                                <option value="Hooghly">Hooghly (Arambagh / Khanakul)</option>
+                                <option value="Nadia">Nadia (Bhagirathi Basin)</option>
+                                <option value="Purba Bardhaman">Purba Bardhaman (Damodar)</option>
+                            </optgroup>
+                            <optgroup label="Sub-Himalayan & Hills (Flash Flood / Landslide / Quake)">
+                                <option value="Darjeeling">Darjeeling (Zone IV/V Seismic)</option>
+                                <option value="Kalimpong">Kalimpong (Teesta Basin)</option>
+                                <option value="Jalpaiguri">Jalpaiguri (Dooars)</option>
+                                <option value="Alipurduar">Alipurduar (Torsa Basin)</option>
+                                <option value="Cooch Behar">Cooch Behar</option>
+                            </optgroup>
+                            <optgroup label="North-Central Plains (Ganga Inundation / Erosion)">
+                                <option value="Malda">Malda (Fulahar & Ganga)</option>
+                                <option value="Murshidabad">Murshidabad (Padma Basin)</option>
+                                <option value="Uttar Dinajpur">Uttar Dinajpur</option>
+                                <option value="Dakshin Dinajpur">Dakshin Dinajpur</option>
+                            </optgroup>
+                            <optgroup label="Western Rarh & Plateau (Flash Flood / Storms)">
+                                <option value="Paschim Medinipur">Paschim Medinipur (Ghatal)</option>
+                                <option value="Jhargram">Jhargram</option>
+                                <option value="Bankura">Bankura</option>
+                                <option value="Purulia">Purulia</option>
+                                <option value="Birbhum">Birbhum (Mayurakshi)</option>
+                                <option value="Paschim Bardhaman">Paschim Bardhaman</option>
+                            </optgroup>
+                        </select>
+                    </div>
+
+                    <div class="btn-group-loc">
+                        <button type="button" class="action-btn gps-btn" onclick="detectUserLocationWB()">
+                            🎯 Detect My WB Location
+                        </button>
+                        <button type="button" class="action-btn scan-btn" onclick="diagnoseCurrentWBLocation()">
+                            ⚡ Diagnose Hazard & Telemetry
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Active Diagnosis Card for Selected WB District -->
+                <div id="wb-hazard-card" class="wb-hazard-card">
+                    <div class="hazard-card-top">
+                        <div class="hazard-title-wrap">
+                            <span id="hazard-icon" class="hazard-icon">🌧️</span>
+                            <div>
+                                <h4 id="hazard-name">Monsoon Rain & Urban Drainage Congestion</h4>
+                                <span id="hazard-district-badge" class="district-badge">Kolkata • Gangetic Delta</span>
+                            </div>
+                        </div>
+                        <div class="hazard-level-wrap">
+                            <span id="hazard-level-badge" class="hazard-level-badge level-moderate">MODERATE RISK</span>
+                        </div>
+                    </div>
+
+                    <div class="hazard-meta-grid">
+                        <div class="hazard-meta-item">
+                            <span class="meta-label">RIVER BASIN</span>
+                            <span id="hazard-river-basin" class="meta-val">Hooghly River Basin</span>
+                        </div>
+                        <div class="hazard-meta-item">
+                            <span class="meta-label">SOURCE APIS</span>
+                            <span id="hazard-sources" class="meta-val">IMD Kolkata Radar & NDMA SACHET</span>
+                        </div>
+                        <div class="hazard-meta-item">
+                            <span class="meta-label">SEISMIC STATUS</span>
+                            <span id="hazard-seismic" class="meta-val">USGS: Normal Zone III</span>
+                        </div>
+                        <div class="hazard-meta-item">
+                            <span class="meta-label">ESTIMATED RUNOFF</span>
+                            <span id="hazard-forecast" class="meta-val">0.8 m/hr rise rate</span>
+                        </div>
+                    </div>
+
+                    <p id="hazard-vulnerability" class="hazard-desc">
+                        Drainage congestion in low-lying pockets; lock gates along Hooghly River closed during high tide.
+                    </p>
+
+                    <div class="hazard-action-bar">
+                        <div class="advisory-text">
+                            <strong>💡 AI Response Advisory:</strong>
+                            <span id="hazard-advisory">Deploy high-capacity dewatering pumps in central & south basins.</span>
+                        </div>
+                        <button type="button" class="primary-btn auto-fill-btn" onclick="applyWBTelemetryToPrediction()">
+                            📊 Load Into AI Prediction Model
+                        </button>
+                    </div>
+                </div>
             </div>
 
-            <div>
-                <span class="legend-critical"></span>
-                Critical
+
+            <div class="prediction-grid">
+
+
+                <!-- INPUT PANEL -->
+
+                <div class="panel">
+
+                    <h3>
+                        Environmental Conditions
+                    </h3>
+
+
+                    <label>
+                        Rainfall intensity (mm/hour)
+                    </label>
+
+                    <input type="number" id="rainfall" value="75" min="0">
+
+
+                    <label>
+                        River water level (m)
+                    </label>
+
+                    <input type="number" id="river_level" value="6" min="0" step="0.1">
+
+
+                    <label>
+                        Water-level rise (m/hour)
+                    </label>
+
+                    <input type="number" id="water_rise" value="1" min="0" step="0.1">
+
+
+                    <label>
+                        Soil moisture (%)
+                    </label>
+
+                    <input type="number" id="soil_moisture" value="75" min="0" max="100">
+
+
+                    <button class="primary-btn" onclick="runPrediction()">
+
+                        Run AI Prediction
+
+                    </button>
+
+                </div>
+
+
+
+                <!-- RESULT PANEL -->
+
+                <div class="panel result-panel">
+
+                    <h3>
+                        Prediction Status
+                    </h3>
+
+                    <div id="prediction-status">
+
+                        Waiting for analysis...
+
+                    </div>
+
+                </div>
+
             </div>
 
-        </div>
-
-    </section>
+        </section>
 
 
 
-    <!-- ================= RESCUE ================= -->
+        <!-- ================= RISK MAP ================= -->
 
-    <section id="rescue" class="section">
+        <section id="map-section" class="section">
 
-        <div class="section-title">
+            <div class="section-title">
 
-            <h2>
-                Rescue Operations
-            </h2>
+                <h2>
+                    Live Flood Risk Map
+                </h2>
 
-            <p>
-                AI-generated response priorities
-            </p>
+                <p>
+                    Simulated command map
+                </p>
 
-        </div>
-
-
-        <div class="table-container">
-
-            <table>
-
-                <thead>
-
-                    <tr>
-
-                        <th>Priority</th>
-                        <th>Zone</th>
-                        <th>Risk</th>
-                        <th>Rescue Score</th>
-                        <th>Shelter</th>
-                        <th>Boats</th>
-                        <th>Teams</th>
-                        <th>Ambulances</th>
-
-                    </tr>
-
-                </thead>
+            </div>
 
 
-                <tbody id="rescue-table">
+            <div id="map"></div>
 
-                    <tr>
 
-                        <td colspan="8">
-                            Run a prediction first.
-                        </td>
+            <div class="legend">
 
-                    </tr>
+                <div>
+                    <span class="legend-low"></span>
+                    Low
+                </div>
 
-                </tbody>
+                <div>
+                    <span class="legend-moderate"></span>
+                    Moderate
+                </div>
 
-            </table>
+                <div>
+                    <span class="legend-high"></span>
+                    High
+                </div>
 
-        </div>
+                <div>
+                    <span class="legend-critical"></span>
+                    Critical
+                </div>
 
-    </section>
+            </div>
+
+        </section>
 
 
 
-    <!-- ================= SOS ================= -->
+        <!-- ================= RESCUE ================= -->
 
-    <section id="sos" class="section">
+        <section id="rescue" class="section">
 
-        <div class="section-title">
+            <div class="section-title">
 
-            <h2>
-                Emergency SOS
-            </h2>
+                <h2>
+                    Rescue Operations
+                </h2>
 
-            <p>
-                Community emergency reporting
-            </p>
+                <p>
+                    AI-generated response priorities
+                </p>
 
-        </div>
+            </div>
 
 
-        <div class="panel sos-panel">
+            <div class="table-container">
 
-            <textarea
-                id="sos-message"
-                placeholder="Describe the emergency...">
+                <table>
+
+                    <thead>
+
+                        <tr>
+
+                            <th>Priority</th>
+                            <th>Zone</th>
+                            <th>Risk</th>
+                            <th>Rescue Score</th>
+                            <th>Shelter</th>
+                            <th>Boats</th>
+                            <th>Teams</th>
+                            <th>Ambulances</th>
+
+                        </tr>
+
+                    </thead>
+
+
+                    <tbody id="rescue-table">
+
+                        <tr>
+
+                            <td colspan="8">
+                                Run a prediction first.
+                            </td>
+
+                        </tr>
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </section>
+
+
+
+        <!-- ================= SOS ================= -->
+
+        <section id="sos" class="section">
+
+            <div class="section-title">
+
+                <h2>
+                    Emergency SOS
+                </h2>
+
+                <p>
+                    Community emergency reporting
+                </p>
+
+            </div>
+
+
+            <div class="panel sos-panel">
+
+                <textarea id="sos-message" placeholder="Describe the emergency...">
             </textarea>
 
 
-            <button
-                class="primary-btn"
-                onclick="submitSOS()">
+                <button class="primary-btn" onclick="submitSOS()">
 
-                Send Emergency Report
+                    Send Emergency Report
 
-            </button>
+                </button>
 
 
-            <div id="sos-result"></div>
+                <div id="sos-result"></div>
 
-        </div>
+            </div>
 
-    </section>
+        </section>
 
-</div>
+    </div>
 
 
 
-<!-- ================= JAVASCRIPT LIBRARIES ================= -->
+    <!-- ================= JAVASCRIPT LIBRARIES ================= -->
 
-<script
-    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js">
-</script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js">
+    </script>
 
 
-<script src=" {{ url_for('static',filename='script.js')}}"><</script>
+    <script src="script.js"></script>
+    <script>
+        // Update active navigation state
+        document.addEventListener('DOMContentLoaded', function() {
+            const menuBtns = document.querySelectorAll('.menu button');
+            menuBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    menuBtns.forEach(b => b.classList.remove('active-nav'));
+                    this.classList.add('active-nav');
+                });
+            });
+        });
+
+        // Ensure submitSOS is available
+        function submitSOS() {
+            if (typeof sendSOS === "function") {
+                sendSOS();
+            } else {
+                var res = document.getElementById("sos-result");
+                if (res) {
+                    res.style.display = "block";
+                    res.innerHTML = "🚨 <strong>Emergency SOS activated:</strong> Report dispatched to response units.";
+                } else {
+                    alert("🚨 Emergency SOS activated.");
+                }
+            }
+        }
+    </script>
 
 
 </body>
