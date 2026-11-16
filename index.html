@@ -251,6 +251,18 @@
 
             </div>
 
+            <!-- ================= CHINTU CODER FLASHING HIGHLIGHTED MARQUEE ================= -->
+            <div class="chintu-marquee-container">
+                <div class="chintu-badge">
+                    <span class="pulse-flame">🔥</span> CHINTU CODER
+                </div>
+                <div class="chintu-marquee-track">
+                    <marquee behavior="scroll" direction="left" scrollamount="7" class="chintu-marquee-text">
+                        ⚡ 🚀 🔥 <strong>made by chintu coder (sayan)</strong> • 💻 DISASTER MANAGEMENT AI ARCHITECT • ⚡ 🚀 🔥 <strong>made by chintu coder (sayan)</strong> • 🌟 PURBABHASH V6 SYSTEM MASTER • ⚡ 🚀 🔥 <strong>made by chintu coder (sayan)</strong> 💖 ⚡
+                    </marquee>
+                </div>
+            </div>
+
         </section>
 
 
@@ -387,72 +399,168 @@
             </div>
 
 
-            <div class="prediction-grid">
+            <!-- HAZARD PREDICTOR SWITCHER TABS -->
+            <div class="hazard-tab-bar">
+                <button type="button" class="hazard-tab active" id="tab-flood" onclick="switchPredictor('flood')">
+                    🌊 Flood Inundation
+                </button>
+                <button type="button" class="hazard-tab" id="tab-cyclone" onclick="switchPredictor('cyclone')">
+                    🌀 Cyclone & Surge
+                </button>
+                <button type="button" class="hazard-tab" id="tab-landslide" onclick="switchPredictor('landslide')">
+                    ⛰️ Landslide & Slope
+                </button>
+                <button type="button" class="hazard-tab" id="tab-earthquake" onclick="switchPredictor('earthquake')">
+                    🌋 Earthquake & Seismic
+                </button>
+            </div>
 
+            <!-- ================= 1. FLOOD PREDICTOR SUBPANEL ================= -->
+            <div id="predictor-flood" class="predictor-subpanel active">
+                <div class="prediction-grid">
 
-                <!-- INPUT PANEL -->
+                    <!-- INPUT PANEL -->
+                    <div class="panel">
+                        <h3>🌊 Flood Catchment Parameters</h3>
 
-                <div class="panel">
+                        <label>Rainfall intensity (mm/hour)</label>
+                        <input type="number" id="rainfall" value="75" min="0">
 
-                    <h3>
-                        Environmental Conditions
-                    </h3>
+                        <label>River water level (m)</label>
+                        <input type="number" id="river_level" value="6" min="0" step="0.1">
 
+                        <label>Water-level rise (m/hour)</label>
+                        <input type="number" id="water_rise" value="1" min="0" step="0.1">
 
-                    <label>
-                        Rainfall intensity (mm/hour)
-                    </label>
+                        <label>Soil moisture (%)</label>
+                        <input type="number" id="soil_moisture" value="75" min="0" max="100">
 
-                    <input type="number" id="rainfall" value="75" min="0">
+                        <button class="primary-btn" onclick="runPrediction()">
+                            Run AI Flood Prediction
+                        </button>
+                    </div>
 
-
-                    <label>
-                        River water level (m)
-                    </label>
-
-                    <input type="number" id="river_level" value="6" min="0" step="0.1">
-
-
-                    <label>
-                        Water-level rise (m/hour)
-                    </label>
-
-                    <input type="number" id="water_rise" value="1" min="0" step="0.1">
-
-
-                    <label>
-                        Soil moisture (%)
-                    </label>
-
-                    <input type="number" id="soil_moisture" value="75" min="0" max="100">
-
-
-                    <button class="primary-btn" onclick="runPrediction()">
-
-                        Run AI Prediction
-
-                    </button>
-
-                </div>
-
-
-
-                <!-- RESULT PANEL -->
-
-                <div class="panel result-panel">
-
-                    <h3>
-                        Prediction Status
-                    </h3>
-
-                    <div id="prediction-status">
-
-                        Waiting for analysis...
-
+                    <!-- RESULT PANEL -->
+                    <div class="panel result-panel">
+                        <h3>Prediction Status</h3>
+                        <div id="prediction-status">
+                            Waiting for analysis...
+                        </div>
                     </div>
 
                 </div>
+            </div>
 
+            <!-- ================= 2. CYCLONE PREDICTOR SUBPANEL ================= -->
+            <div id="predictor-cyclone" class="predictor-subpanel">
+                <div class="prediction-grid">
+
+                    <!-- CYCLONE INPUTS -->
+                    <div class="panel">
+                        <h3>🌀 Bay of Bengal Cyclone & Surge Parameters</h3>
+
+                        <label>Max Sustained Wind Speed (km/h)</label>
+                        <input type="number" id="cyclone_wind" value="130" min="30" max="320">
+
+                        <label>Central Pressure Drop (hPa / mbar)</label>
+                        <input type="number" id="cyclone_pressure" value="24" min="2" max="90" step="0.5">
+
+                        <label>Distance to West Bengal Coast (km)</label>
+                        <input type="number" id="cyclone_distance" value="65" min="5" max="500">
+
+                        <label>Astronomical High-Tide Amplitude (m)</label>
+                        <input type="number" id="cyclone_tide" value="3.2" min="0.5" max="6.5" step="0.1">
+
+                        <button type="button" class="primary-btn" onclick="runCyclonePrediction()">
+                            Simulate Cyclone & Storm Surge
+                        </button>
+                    </div>
+
+                    <!-- CYCLONE RESULTS -->
+                    <div class="panel result-panel">
+                        <h3>Cyclone Impact Diagnostic</h3>
+                        <div id="cyclone-prediction-status">
+                            Select coastal parameters and click Simulate to evaluate storm category, surge height, and evacuation alert.
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- ================= 3. LANDSLIDE PREDICTOR SUBPANEL ================= -->
+            <div id="predictor-landslide" class="predictor-subpanel">
+                <div class="prediction-grid">
+
+                    <!-- LANDSLIDE INPUTS -->
+                    <div class="panel">
+                        <h3>⛰️ North Bengal Slope Instability Parameters</h3>
+
+                        <label>72-Hour Cumulative Rainfall (mm)</label>
+                        <input type="number" id="landslide_rain" value="160" min="0" max="600">
+
+                        <label>Hill Slope Angle (Degrees °)</label>
+                        <input type="number" id="landslide_slope" value="42" min="10" max="75">
+
+                        <label>Soil Saturation Index (%)</label>
+                        <input type="number" id="landslide_soil" value="88" min="10" max="100">
+
+                        <label>Geological Jointing & Fragility Index (1: Low - 5: Severe)</label>
+                        <input type="number" id="landslide_fragility" value="4" min="1" max="5">
+
+                        <button type="button" class="primary-btn" onclick="runLandslidePrediction()">
+                            Evaluate Landslide Probability
+                        </button>
+                    </div>
+
+                    <!-- LANDSLIDE RESULTS -->
+                    <div class="panel result-panel">
+                        <h3>Slope Stability Analysis</h3>
+                        <div id="landslide-prediction-status">
+                            Provide slope angles and rainfall telemetry to calculate slope factor of safety (FoS) and debris flow hazards.
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- ================= 4. EARTHQUAKE PREDICTOR SUBPANEL ================= -->
+            <div id="predictor-earthquake" class="predictor-subpanel">
+                <div class="prediction-grid">
+
+                    <!-- EARTHQUAKE INPUTS -->
+                    <div class="panel">
+                        <h3>🌋 Seismic Attenuation & Damage Parameters</h3>
+
+                        <label>Richter Magnitude (M)</label>
+                        <input type="number" id="quake_magnitude" value="6.2" min="2.0" max="9.0" step="0.1">
+
+                        <label>Focal Depth (km)</label>
+                        <input type="number" id="quake_depth" value="15" min="2" max="150">
+
+                        <label>Distance to WB District / Epicenter (km)</label>
+                        <input type="number" id="quake_distance" value="45" min="5" max="400">
+
+                        <label>Foundation Soil Sub-type</label>
+                        <select id="quake_soil">
+                            <option value="alluvium" selected>Soft Gangetic Alluvium (Kolkata, Howrah, Malda)</option>
+                            <option value="delta_mud">Saturated Estuarine Delta Silt (Sundarbans / Coastal)</option>
+                            <option value="crystalline_rock">Crystalline Granite / Bedrock (Darjeeling / Kalimpong)</option>
+                        </select>
+
+                        <button type="button" class="primary-btn" onclick="runEarthquakePrediction()">
+                            Calculate Ground Shaking & Damage
+                        </button>
+                    </div>
+
+                    <!-- EARTHQUAKE RESULTS -->
+                    <div class="panel result-panel">
+                        <h3>Seismic Intensity & Liquefaction</h3>
+                        <div id="earthquake-prediction-status">
+                            Configure magnitude, focal depth, and foundation soils to compute Peak Ground Acceleration (PGA) and Mercalli Intensity.
+                        </div>
+                    </div>
+
+                </div>
             </div>
 
         </section>

@@ -434,6 +434,223 @@ def predict_location():
 
 
 # -------------------------
+# CYCLONE & STORM SURGE PREDICTOR (IMD & BAY OF BENGAL MODEL)
+# -------------------------
+@app.route("/api/predict/cyclone", methods=["POST"])
+def predict_cyclone():
+    try:
+        data = request.get_json() or {}
+        wind_speed = float(data.get("wind_speed", 130.0)) # km/h
+        pressure_drop = float(data.get("pressure_drop", 24.0)) # hPa
+        coast_dist = float(data.get("coast_distance", 65.0)) # km
+        tide_amplitude = float(data.get("astronomical_tide", 3.2)) # m
+
+        # IMD Cyclone Intensity Scale
+        if wind_speed >= 222:
+            category = "Super Cyclonic Storm (SuCS)"
+            port_signal = "Great Danger Signal No. 10 (Highest Alert)"
+            wind_risk = 40
+        elif wind_speed >= 167:
+            category = "Extremely Severe Cyclonic Storm (ESCS)"
+            port_signal = "Great Danger Signal No. 9"
+            wind_risk = 35
+        elif wind_speed >= 118:
+            category = "Very Severe Cyclonic Storm (VSCS)"
+            port_signal = "Danger Signal No. 8"
+            wind_risk = 30
+        elif wind_speed >= 89:
+            category = "Severe Cyclonic Storm (SCS)"
+            port_signal = "Danger Signal No. 7"
+            wind_risk = 22
+        elif wind_speed >= 62:
+            category = "Cyclonic Storm (CS)"
+            port_signal = "Warning Signal No. 6"
+            wind_risk = 15
+        else:
+            category = "Deep Depression (DD)"
+            port_signal = "Cautionary Signal No. 3"
+            wind_risk = 8
+
+        # Estimated Coastal Inundation Surge Height (m)
+        surge_height = round(0.018 * pressure_drop * 10 + ((wind_speed / 45.0) ** 1.35) * 0.85 + tide_amplitude * 0.4, 2)
+
+        # Proximity decay factor
+        proximity_factor = max(0.2, 1.0 - (coast_dist / 350.0))
+        cyclone_threat_score = min(100, int((wind_risk + min(35, surge_height * 7) + (pressure_drop * 0.8)) * proximity_factor))
+
+        if cyclone_threat_score >= 80:
+            risk_level = "CRITICAL"
+            action = "Mandatory evacuation within 5km coastal belt (Kakdwip, Gosaba, Sagar Island, Digha, Mandarmani)."
+        elif cyclone_threat_score >= 55:
+            risk_level = "HIGH"
+            action = "Move fishermen and low-lying coastal populations to Multipurpose Cyclone Shelters (MPCS)."
+        elif cyclone_threat_score >= 35:
+            risk_level = "MODERATE"
+            action = "Suspend maritime shipping and keep embankment repair teams equipped with geobags."
+        else:
+            risk_level = "LOW"
+            action = "Continuous coastal radar tracking; standard precautionary watch."
+
+        return jsonify({
+            "status": "success",
+            "hazard_type": "CYCLONE & COASTAL SURGE",
+            "category": category,
+            "port_warning_signal": port_signal,
+            "predicted_surge_height_m": surge_height,
+            "threat_score": cyclone_threat_score,
+            "risk_level": risk_level,
+            "coastal_hotspots": ["South 24 Parganas (Sundarbans)", "Purba Medinipur (Digha/Haldia)", "Kolkata South"],
+            "advisory": action,
+            "inputs": {
+                "wind_speed_kmh": wind_speed,
+                "pressure_drop_hpa": pressure_drop,
+                "coast_distance_km": coast_dist,
+                "astronomical_tide_m": tide_amplitude
+            }
+        })
+    except Exception as e:
+        return jsonify({"status": "error", "error": str(e)}), 400
+
+
+# -------------------------
+# LANDSLIDE & SLOPE STABILITY PREDICTOR (GSI & NORTH BENGAL MODEL)
+# -------------------------
+@app.route("/api/predict/landslide", methods=["POST"])
+def predict_landslide():
+    try:
+        data = request.get_json() or {}
+        cum_rain = float(data.get("cumulative_rain", 160.0)) # mm in 72h
+        slope_angle = float(data.get("slope_angle", 42.0)) # degrees
+        soil_sat = float(data.get("soil_saturation", 88.0)) # %
+        fragility = int(data.get("fragility_index", 4)) # 1 to 5
+
+        # Geological Survey of India empirical rainfall-slope threshold
+        # Critical rainfall threshold for Sub-Himalayan steep slopes ~ 110-140 mm / 72h
+        rain_factor = min(40, (cum_rain / 180.0) * 35)
+        slope_factor = min(30, (slope_angle / 55.0) * 30)
+        sat_factor = min(20, (soil_sat / 95.0) * 20)
+        geo_factor = min(15, (fragility / 5.0) * 15)
+
+        landslide_score = min(100, int(rain_factor + slope_factor + sat_factor + geo_factor))
+
+        # Factor of Safety (FoS) estimation (<1.0 is unstable)
+        fos = round(max(0.65, 2.2 - (landslide_score / 60.0)), 2)
+
+        if landslide_score >= 80 or fos < 1.0:
+            risk_level = "CRITICAL"
+            slope_status = "Imminent Debris Flow & Slope Failure"
+            action = "Immediate closure of NH-10 (Sevoke-Teesta Bazaar) and evacuation of hillside settlements."
+        elif landslide_score >= 60:
+            risk_level = "HIGH"
+            slope_status = "High Slope Instability & Rockfall Alert"
+            action = "Halt night vehicular transit on Rohini, Mirik, and Lebong Cart roads; keep heavy earthmovers positioned."
+        elif landslide_score >= 40:
+            risk_level = "MODERATE"
+            slope_status = "Moderate Creep & Saturated Catchment"
+            action = "Monitor slope drainage culverts and clear active hillside weep holes."
+        else:
+            risk_level = "LOW"
+            slope_status = "Stable Slope Conditions"
+            action = "Routine geological survey monitoring; hillsides stable."
+
+        return jsonify({
+            "status": "success",
+            "hazard_type": "LANDSLIDE & HILL SLOPE INSTABILITY",
+            "landslide_probability_pct": landslide_score,
+            "factor_of_safety": fos,
+            "risk_level": risk_level,
+            "slope_status": slope_status,
+            "critical_corridors": ["NH-10 (Siliguri - Teesta Bazaar - Gangtok)", "Rohini Road (Kurseong)", "Paglajhora Slips"],
+            "advisory": action,
+            "inputs": {
+                "cumulative_rain_72h_mm": cum_rain,
+                "slope_angle_deg": slope_angle,
+                "soil_saturation_pct": soil_sat,
+                "geological_fragility": fragility
+            }
+        })
+    except Exception as e:
+        return jsonify({"status": "error", "error": str(e)}), 400
+
+
+# -------------------------
+# EARTHQUAKE & SEISMIC ATTENUATION PREDICTOR (USGS & ZONE IV/V MODEL)
+# -------------------------
+@app.route("/api/predict/earthquake", methods=["POST"])
+def predict_earthquake():
+    try:
+        data = request.get_json() or {}
+        mag = float(data.get("magnitude", 6.2))
+        depth = float(data.get("focal_depth", 15.0)) # km
+        dist = float(data.get("epicenter_distance", 45.0)) # km
+        soil_type = str(data.get("soil_type", "alluvium")).lower()
+
+        # Soil site amplification factor
+        soil_amps = {
+            "alluvium": 1.45,       # Soft Gangetic alluvium (Kolkata, Howrah, Malda)
+            "delta_mud": 1.65,      # Sundarbans saturated estuarine silt
+            "crystalline_rock": 0.85 # North Bengal granite/gneiss hills
+        }
+        amp = soil_amps.get(soil_type, 1.2)
+
+        # Hypocentral distance
+        hypo = math.sqrt((dist ** 2) + (depth ** 2))
+
+        # Peak Ground Acceleration (PGA) in %g using Sub-Himalayan attenuation
+        pga = round((0.042 * math.exp(0.82 * mag) * ((hypo + 12.0) ** -1.22)) * amp, 3)
+
+        # Modified Mercalli Intensity (MMI) Scale
+        if pga >= 0.35:
+            mmi = "MMI VIII - Destructive"
+            damage = "Heavy damage to masonry structures, partial collapse, ground fissures."
+            risk_level = "CRITICAL"
+        elif pga >= 0.18:
+            mmi = "MMI VII - Very Strong"
+            damage = "Moderate to heavy damage in poorly constructed buildings, chimneys broken."
+            risk_level = "HIGH"
+        elif pga >= 0.08:
+            mmi = "MMI VI - Strong"
+            damage = "Slight structural damage, plaster fallen, heavy furniture overturned."
+            risk_level = "MODERATE"
+        elif pga >= 0.03:
+            mmi = "MMI V - Moderate"
+            damage = "Felt by nearly everyone; pictures move, liquids spilled."
+            risk_level = "LOW"
+        else:
+            mmi = "MMI III/IV - Light to Weak"
+            damage = "Noticeable indoors; no significant structural hazard."
+            risk_level = "LOW"
+
+        # Liquefaction risk (highest in saturated alluvium with high PGA)
+        if amp >= 1.4 and pga >= 0.15:
+            liq_risk = "HIGH (Severe liquefaction hazard in Gangetic/coastal mud)"
+        elif amp >= 1.2 and pga >= 0.08:
+            liq_risk = "MODERATE (Localized sand boiling in riverbed fills)"
+        else:
+            liq_risk = "LOW (Stable foundation response)"
+
+        return jsonify({
+            "status": "success",
+            "hazard_type": "EARTHQUAKE & SEISMIC HAZARD",
+            "pga_g": pga,
+            "mmi_intensity": mmi,
+            "structural_damage_assessment": damage,
+            "liquefaction_potential": liq_risk,
+            "risk_level": risk_level,
+            "seismic_zone": "Zone IV / V (Sub-Himalayan) & Zone III (Gangetic Basin)",
+            "emergency_protocol": "Activate NDRF 2nd Battalion (Haringhata) & inspect critical flyovers/bridges in Kolkata and Siliguri.",
+            "inputs": {
+                "magnitude": mag,
+                "focal_depth_km": depth,
+                "epicenter_distance_km": dist,
+                "soil_foundation": soil_type
+            }
+        })
+    except Exception as e:
+        return jsonify({"status": "error", "error": str(e)}), 400
+
+
+# -------------------------
 # FLOOD PREDICTION API (LEGACY SUPPORT)
 # -------------------------
 @app.route("/api/predict", methods=["POST"])

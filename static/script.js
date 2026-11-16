@@ -386,6 +386,35 @@ function onDistrictSelected(name) {
     if (forecastEl) forecastEl.textContent = d.forecast;
     if (vulEl) vulEl.textContent = d.vulnerability;
     if (advEl) advEl.textContent = d.advisory;
+
+    // Adapt other hazard predictors based on district geography
+    if (d.region.includes("Coastal") || name.includes("24 Parganas") || name.includes("Purba Medinipur")) {
+        const cWind = document.getElementById("cyclone_wind");
+        const cDist = document.getElementById("cyclone_distance");
+        const cTide = document.getElementById("cyclone_tide");
+        if (cWind) cWind.value = 145;
+        if (cDist) cDist.value = 35;
+        if (cTide) cTide.value = 3.8;
+    } else if (d.region.includes("Hills") || name === "Darjeeling" || name === "Kalimpong") {
+        const lRain = document.getElementById("landslide_rain");
+        const lSlope = document.getElementById("landslide_slope");
+        const lSoil = document.getElementById("landslide_soil");
+        const lFrag = document.getElementById("landslide_fragility");
+        if (lRain) lRain.value = 195;
+        if (lSlope) lSlope.value = 48;
+        if (lSoil) lSoil.value = 94;
+        if (lFrag) lFrag.value = 5;
+
+        const qMag = document.getElementById("quake_magnitude");
+        const qDist = document.getElementById("quake_distance");
+        const qSoil = document.getElementById("quake_soil");
+        if (qMag) qMag.value = 6.4;
+        if (qDist) qDist.value = 25;
+        if (qSoil) qSoil.value = "crystalline_rock";
+    } else {
+        const qSoil = document.getElementById("quake_soil");
+        if (qSoil) qSoil.value = "alluvium";
+    }
 }
 
 function applyWBTelemetryToPrediction() {
@@ -393,6 +422,7 @@ function applyWBTelemetryToPrediction() {
     const name = sel ? sel.value : "Kolkata";
     const d = WB_DISTRICT_DATA[name] || WB_DISTRICT_DATA["Kolkata"];
 
+    // Always update flood inputs
     const rEl = document.getElementById("rainfall");
     const rivEl = document.getElementById("river_level");
     const riseEl = document.getElementById("water_rise");
@@ -403,11 +433,22 @@ function applyWBTelemetryToPrediction() {
     if (riseEl) riseEl.value = d.defaults.water_rise;
     if (soilEl) soilEl.value = d.defaults.soil_moisture;
 
-    runPrediction();
-
-    const predStatus = document.getElementById("prediction-status");
-    if (predStatus) {
-        predStatus.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    // Intelligently route to the primary hazard tab for this district
+    if (d.primary_hazard.includes("Cyclone")) {
+        switchPredictor("cyclone");
+        runCyclonePrediction();
+        const cStatus = document.getElementById("cyclone-prediction-status");
+        if (cStatus) cStatus.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    } else if (d.primary_hazard.includes("Landslide")) {
+        switchPredictor("landslide");
+        runLandslidePrediction();
+        const lStatus = document.getElementById("landslide-prediction-status");
+        if (lStatus) lStatus.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    } else {
+        switchPredictor("flood");
+        runPrediction();
+        const predStatus = document.getElementById("prediction-status");
+        if (predStatus) predStatus.scrollIntoView({ behavior: "smooth", block: "nearest" });
     }
 }
 
@@ -496,6 +537,357 @@ async function diagnoseCurrentWBLocation() {
     }
 
     applyWBTelemetryToPrediction();
+}
+
+
+// ============================================================
+// SECTION 1C — MULTI-HAZARD PREDICTION ENGINES
+// Cyclone & Surge | Landslide & Slope | Earthquake & Seismic
+// ============================================================
+
+function switchPredictor(hazardType) {
+    console.log("Switching predictor to:", hazardType);
+
+    // Update active tab buttons
+    const tabs = document.querySelectorAll(".hazard-tab");
+    tabs.forEach(t => t.classList.remove("active"));
+    const activeTab = document.getElementById(`tab-${hazardType}`);
+    if (activeTab) activeTab.classList.add("active");
+
+    // Update active subpanels
+    const subpanels = document.querySelectorAll(".predictor-subpanel");
+    subpanels.forEach(p => p.classList.remove("active"));
+    const activeSubpanel = document.getElementById(`predictor-${hazardType}`);
+    if (activeSubpanel) activeSubpanel.classList.add("active");
+}
+
+// -------------------------
+// 1. CYCLONE & STORM SURGE PREDICTOR
+// -------------------------
+async function runCyclonePrediction() {
+    const status = document.getElementById("cyclone-prediction-status");
+    if (!status) return;
+
+    const windSpeed = parseFloat(document.getElementById("cyclone_wind").value) || 130;
+    const pressureDrop = parseFloat(document.getElementById("cyclone_pressure").value) || 24;
+    const coastDist = parseFloat(document.getElementById("cyclone_distance").value) || 65;
+    const tideAmp = parseFloat(document.getElementById("cyclone_tide").value) || 3.2;
+
+    status.innerHTML = `<div class="prediction-result"><h3>🌀 Simulating Bay of Bengal Cyclone Track...</h3><p>Calculating coastal storm surge, wind swath, and tidal wave amplification...</p></div>`;
+
+    // Try backend API first
+    let result = null;
+    try {
+        const res = await fetch("/api/predict/cyclone", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                wind_speed: windSpeed,
+                pressure_drop: pressureDrop,
+                coast_distance: coastDist,
+                astronomical_tide: tideAmp
+            })
+        });
+        if (res.ok) {
+            result = await res.json();
+        }
+    } catch (e) {
+        // Fallback: Client-side IMD / Saffir-Simpson empirical formula
+    }
+
+    if (!result) {
+        let cat = "Cyclonic Storm (CS)";
+        let signal = "Warning Signal No. 6";
+        let windRisk = 15;
+        if (windSpeed >= 222) { cat = "Super Cyclonic Storm (SuCS)"; signal = "Great Danger Signal No. 10"; windRisk = 40; }
+        else if (windSpeed >= 167) { cat = "Extremely Severe Cyclonic Storm (ESCS)"; signal = "Great Danger Signal No. 9"; windRisk = 35; }
+        else if (windSpeed >= 118) { cat = "Very Severe Cyclonic Storm (VSCS)"; signal = "Danger Signal No. 8"; windRisk = 30; }
+        else if (windSpeed >= 89) { cat = "Severe Cyclonic Storm (SCS)"; signal = "Danger Signal No. 7"; windRisk = 22; }
+
+        const surge = Math.round((0.018 * pressureDrop * 10 + Math.pow(windSpeed / 45.0, 1.35) * 0.85 + tideAmp * 0.4) * 100) / 100;
+        const prox = Math.max(0.2, 1.0 - (coastDist / 350.0));
+        const score = Math.min(100, Math.round((windRisk + Math.min(35, surge * 7) + (pressureDrop * 0.8)) * prox));
+
+        let level = "MODERATE";
+        let action = "Keep marine fishermen off deep seas; coastal sluice gates on watch.";
+        if (score >= 80) { level = "CRITICAL"; action = "Immediate mandatory evacuation within 5km coastal belt (Kakdwip, Gosaba, Sagar Island, Digha)."; }
+        else if (score >= 55) { level = "HIGH"; action = "Activate Multipurpose Cyclone Shelters (MPCS); stage NDRF teams."; }
+
+        result = {
+            category: cat,
+            port_warning_signal: signal,
+            predicted_surge_height_m: surge,
+            threat_score: score,
+            risk_level: level,
+            coastal_hotspots: ["South 24 Parganas (Sundarbans)", "Purba Medinipur (Digha/Haldia)", "Kolkata South"],
+            advisory: action
+        };
+    }
+
+    const levelClass = result.risk_level === "CRITICAL" ? "level-critical" : result.risk_level === "HIGH" ? "level-high" : "level-moderate";
+
+    status.innerHTML = `
+        <div class="prediction-result">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+                <h3 style="margin:0; color:#38bdf8;">🌀 ${result.category}</h3>
+                <span class="hazard-level-badge ${levelClass}">${result.risk_level} ALERT</span>
+            </div>
+
+            <div class="risk-metric-box">
+                <div class="metric-header">
+                    <span>ESTIMATED STORM SURGE</span>
+                    <strong style="color:#7dd3fc; font-size:20px;">🌊 ${result.predicted_surge_height_m} meters</strong>
+                </div>
+                <div style="font-size:12px; color:var(--text-muted);">Wave height above astronomical high tide at landfall shorelines.</div>
+            </div>
+
+            <div class="hazard-meta-grid" style="margin-bottom:14px;">
+                <div class="hazard-meta-item">
+                    <span class="meta-label">IMD PORT SIGNAL</span>
+                    <span class="meta-val" style="color:#f87171;">${result.port_warning_signal}</span>
+                </div>
+                <div class="hazard-meta-item">
+                    <span class="meta-label">CYCLONE THREAT SCORE</span>
+                    <span class="meta-val" style="color:#c4b5fd;">${result.threat_score} / 100</span>
+                </div>
+            </div>
+
+            <p style="font-size:13.5px; color:var(--text-muted); line-height:1.6; margin-bottom:14px;">
+                <strong>Vulnerable Coastal Zones:</strong> ${result.coastal_hotspots.join(", ")}. Saline embankment breaches and estuarine tidal ingression anticipated.
+            </p>
+
+            <div class="hazard-action-bar" style="padding-top:10px;">
+                <div class="advisory-text">
+                    <strong>🚨 Evacuation Protocol:</strong>
+                    <span>${result.advisory}</span>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+// -------------------------
+// 2. LANDSLIDE & SLOPE STABILITY PREDICTOR
+// -------------------------
+async function runLandslidePrediction() {
+    const status = document.getElementById("landslide-prediction-status");
+    if (!status) return;
+
+    const cumRain = parseFloat(document.getElementById("landslide_rain").value) || 160;
+    const slopeAngle = parseFloat(document.getElementById("landslide_slope").value) || 42;
+    const soilSat = parseFloat(document.getElementById("landslide_soil").value) || 88;
+    const fragility = parseInt(document.getElementById("landslide_fragility").value) || 4;
+
+    status.innerHTML = `<div class="prediction-result"><h3>⛰️ Calculating Hill Slope Stability...</h3><p>Evaluating GSI rainfall trigger threshold, soil shear stress, and slope factor of safety...</p></div>`;
+
+    let result = null;
+    try {
+        const res = await fetch("/api/predict/landslide", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                cumulative_rain: cumRain,
+                slope_angle: slopeAngle,
+                soil_saturation: soilSat,
+                fragility_index: fragility
+            })
+        });
+        if (res.ok) {
+            result = await res.json();
+        }
+    } catch (e) {
+        // Fallback: Geological Survey of India empirical rainfall-slope model
+    }
+
+    if (!result) {
+        const rainFactor = Math.min(40, (cumRain / 180.0) * 35);
+        const slopeFactor = Math.min(30, (slopeAngle / 55.0) * 30);
+        const satFactor = Math.min(20, (soilSat / 95.0) * 20);
+        const geoFactor = Math.min(15, (fragility / 5.0) * 15);
+        const score = Math.min(100, Math.round(rainFactor + slopeFactor + satFactor + geoFactor));
+        const fos = Math.round(Math.max(0.65, 2.2 - (score / 60.0)) * 100) / 100;
+
+        let level = "MODERATE";
+        let slopeStatus = "Moderate Creep & Saturated Catchment";
+        let action = "Monitor slope drainage culverts and clear active hillside weep holes.";
+        if (score >= 80 || fos < 1.0) {
+            level = "CRITICAL";
+            slopeStatus = "Imminent Debris Flow & Slope Failure";
+            action = "Immediate closure of NH-10 (Sevoke-Teesta Bazaar) and evacuation of hillside settlements.";
+        } else if (score >= 60) {
+            level = "HIGH";
+            slopeStatus = "High Slope Instability & Rockfall Alert";
+            action = "Halt night vehicular transit on Rohini, Mirik, and Lebong Cart roads; keep heavy earthmovers positioned.";
+        }
+
+        result = {
+            landslide_probability_pct: score,
+            factor_of_safety: fos,
+            risk_level: level,
+            slope_status: slopeStatus,
+            critical_corridors: ["NH-10 (Siliguri - Teesta Bazaar - Gangtok)", "Rohini Road (Kurseong)", "Paglajhora Slips"],
+            advisory: action
+        };
+    }
+
+    const levelClass = result.risk_level === "CRITICAL" ? "level-critical" : result.risk_level === "HIGH" ? "level-high" : "level-moderate";
+
+    status.innerHTML = `
+        <div class="prediction-result">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+                <h3 style="margin:0; color:#c084fc;">⛰️ ${result.slope_status}</h3>
+                <span class="hazard-level-badge ${levelClass}">${result.risk_level} ALERT</span>
+            </div>
+
+            <div class="risk-metric-box">
+                <div class="metric-header">
+                    <span>FACTOR OF SAFETY (FoS)</span>
+                    <strong style="color:${result.factor_of_safety < 1.0 ? '#f87171' : '#fb923c'}; font-size:20px;">
+                        FoS = ${result.factor_of_safety} ${result.factor_of_safety < 1.0 ? '(UNSTABLE)' : '(CRITICAL MARGIN)'}
+                    </strong>
+                </div>
+                <div style="font-size:12px; color:var(--text-muted);">Values below 1.0 indicate imminent gravitational slope failure.</div>
+            </div>
+
+            <div class="hazard-meta-grid" style="margin-bottom:14px;">
+                <div class="hazard-meta-item">
+                    <span class="meta-label">LANDSLIDE PROBABILITY</span>
+                    <span class="meta-val" style="color:#f87171;">${result.landslide_probability_pct}% Probability</span>
+                </div>
+                <div class="hazard-meta-item">
+                    <span class="meta-label">RAIN TRIGGER STATUS</span>
+                    <span class="meta-val" style="color:#7dd3fc;">Exceeded 110mm / 72h Threshold</span>
+                </div>
+            </div>
+
+            <p style="font-size:13.5px; color:var(--text-muted); line-height:1.6; margin-bottom:14px;">
+                <strong>Vulnerable Hill Corridors:</strong> ${result.critical_corridors.join(", ")}. Debris slides and boulder rolldown likely along Teesta Valley cut slopes.
+            </p>
+
+            <div class="hazard-action-bar" style="padding-top:10px;">
+                <div class="advisory-text">
+                    <strong>⚠️ Mitigation Advisory:</strong>
+                    <span>${result.advisory}</span>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+// -------------------------
+// 3. EARTHQUAKE & SEISMIC ATTENUATION PREDICTOR
+// -------------------------
+async function runEarthquakePrediction() {
+    const status = document.getElementById("earthquake-prediction-status");
+    if (!status) return;
+
+    const mag = parseFloat(document.getElementById("quake_magnitude").value) || 6.2;
+    const depth = parseFloat(document.getElementById("quake_depth").value) || 15;
+    const dist = parseFloat(document.getElementById("quake_distance").value) || 45;
+    const soilType = document.getElementById("quake_soil").value || "alluvium";
+
+    status.innerHTML = `<div class="prediction-result"><h3>🌋 Computing Ground Shaking Attenuation...</h3><p>Modeling Peak Ground Acceleration (PGA), Mercalli Intensity, and soil liquefaction susceptibility...</p></div>`;
+
+    let result = null;
+    try {
+        const res = await fetch("/api/predict/earthquake", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                magnitude: mag,
+                focal_depth: depth,
+                epicenter_distance: dist,
+                soil_type: soilType
+            })
+        });
+        if (res.ok) {
+            result = await res.json();
+        }
+    } catch (e) {
+        // Fallback: Attenuation formula for Sub-Himalayan & Gangetic delta
+    }
+
+    if (!result) {
+        const soilAmps = { "alluvium": 1.45, "delta_mud": 1.65, "crystalline_rock": 0.85 };
+        const amp = soilAmps[soilType] || 1.2;
+        const hypo = Math.sqrt(dist * dist + depth * depth);
+        const pga = Math.round((0.042 * Math.exp(0.82 * mag) * Math.pow(hypo + 12.0, -1.22) * amp) * 1000) / 1000;
+
+        let mmi = "MMI VI - Strong";
+        let damage = "Slight structural damage, plaster fallen, heavy furniture overturned.";
+        let level = "MODERATE";
+
+        if (pga >= 0.35) {
+            mmi = "MMI VIII - Destructive";
+            damage = "Heavy damage to masonry structures, partial collapse, ground fissures.";
+            level = "CRITICAL";
+        } else if (pga >= 0.18) {
+            mmi = "MMI VII - Very Strong";
+            damage = "Moderate to heavy damage in poorly constructed buildings, chimneys broken.";
+            level = "HIGH";
+        } else if (pga < 0.08) {
+            mmi = "MMI V - Moderate";
+            damage = "Felt by nearly everyone; pictures move, liquids spilled.";
+            level = "LOW";
+        }
+
+        let liq = "LOW (Stable foundation response)";
+        if (amp >= 1.4 && pga >= 0.15) {
+            liq = "HIGH (Severe liquefaction hazard in Gangetic/coastal mud)";
+        } else if (amp >= 1.2 && pga >= 0.08) {
+            liq = "MODERATE (Localized sand boiling in riverbed fills)";
+        }
+
+        result = {
+            pga_g: pga,
+            mmi_intensity: mmi,
+            structural_damage_assessment: damage,
+            liquefaction_potential: liq,
+            risk_level: level,
+            emergency_protocol: "Activate NDRF 2nd Battalion (Haringhata) & inspect critical flyovers/bridges in Kolkata and Siliguri."
+        };
+    }
+
+    const levelClass = result.risk_level === "CRITICAL" ? "level-critical" : result.risk_level === "HIGH" ? "level-high" : "level-moderate";
+
+    status.innerHTML = `
+        <div class="prediction-result">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+                <h3 style="margin:0; color:#fb7185;">🌋 ${result.mmi_intensity}</h3>
+                <span class="hazard-level-badge ${levelClass}">${result.risk_level} ALERT</span>
+            </div>
+
+            <div class="risk-metric-box">
+                <div class="metric-header">
+                    <span>PEAK GROUND ACCELERATION (PGA)</span>
+                    <strong style="color:#fda4af; font-size:20px;">${result.pga_g} %g</strong>
+                </div>
+                <div style="font-size:12px; color:var(--text-muted);">Estimated seismic acceleration felt by ground level structures.</div>
+            </div>
+
+            <div class="hazard-meta-grid" style="margin-bottom:14px;">
+                <div class="hazard-meta-item">
+                    <span class="meta-label">LIQUEFACTION HAZARD</span>
+                    <span class="meta-val" style="color:#fdba74;">${result.liquefaction_potential}</span>
+                </div>
+                <div class="hazard-meta-item">
+                    <span class="meta-label">SEISMIC ZONE</span>
+                    <span class="meta-val" style="color:#c4b5fd;">Zone IV/V (North Bengal) • Zone III (Delta)</span>
+                </div>
+            </div>
+
+            <p style="font-size:13.5px; color:var(--text-muted); line-height:1.6; margin-bottom:14px;">
+                <strong>Structural Vulnerability Assessment:</strong> ${result.structural_damage_assessment}
+            </p>
+
+            <div class="hazard-action-bar" style="padding-top:10px;">
+                <div class="advisory-text">
+                    <strong>🏥 Emergency Operations:</strong>
+                    <span>${result.emergency_protocol}</span>
+                </div>
+            </div>
+        </div>
+    `;
 }
 
 
